@@ -1,7 +1,7 @@
+use crate::process::spawn_and_wait;
 use crate::proton::WineserverInfo;
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use std::ffi::OsString;
-use std::os::unix::process::CommandExt;
 use std::process::Command;
 
 pub fn run(appid: &str, command: Vec<OsString>) -> Result<()> {
@@ -14,6 +14,7 @@ pub fn run(appid: &str, command: Vec<OsString>) -> Result<()> {
         None => bail!("exec requires a command"),
     };
 
-    let err = Command::new(program).args(args).exec();
-    bail!("Failed to exec {}: {err}", program.to_string_lossy());
+    let mut cmd = Command::new(program);
+    cmd.args(args);
+    spawn_and_wait(cmd)
 }

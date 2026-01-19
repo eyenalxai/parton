@@ -1,27 +1,15 @@
+use crate::process::spawn_and_wait_wine;
 use crate::proton::WineserverInfo;
-use anyhow::{bail, Result};
-use std::os::unix::process::CommandExt;
-use std::process::Command;
+use anyhow::Result;
+use std::ffi::OsStr;
 
 pub fn run(appid: &str, bypass_gamescope: Option<String>) -> Result<()> {
     let info = WineserverInfo::find_by_appid(appid)?;
+    let cmd = info.wine_command(
+        OsStr::new("cmd.exe"),
+        &[] as &[&str],
+        bypass_gamescope.as_deref(),
+    )?;
 
-    if !info.wine64.exists() {
-        bail!("wine64 not found at {}", info.wine64.display());
-    }
-
-    info.apply_env();
-
-    let mut cmd = Command::new(&info.wine64);
-
-    if let Some(res) = bypass_gamescope {
-        cmd.arg("explorer")
-            .arg(format!("/desktop=parton,{res}"))
-            .arg("cmd.exe");
-    } else {
-        cmd.arg("cmd.exe");
-    }
-
-    let err = cmd.exec();
-    bail!("Failed to exec wine64: {err}");
+    spawn_and_wait_wine(cmd, Some(&info.wine64), Some("cmd.exe"))
 }

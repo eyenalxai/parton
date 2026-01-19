@@ -1,4 +1,5 @@
 mod commands;
+mod process;
 mod proton;
 
 use anyhow::Result;
@@ -18,7 +19,7 @@ struct Cli {
 enum Command {
     Ls,
     Run {
-        #[arg(long, value_name = "WxH", default_missing_value = "1280x720", num_args = 0..=1)]
+        #[arg(long, value_name = "WxH", default_missing_value = "1280x720", num_args = 0..=1, require_equals = true)]
         bypass_gamescope: Option<String>,
         appid: String,
         exe: PathBuf,
@@ -26,7 +27,7 @@ enum Command {
         args: Vec<OsString>,
     },
     Cmd {
-        #[arg(long, value_name = "WxH", default_missing_value = "1280x720", num_args = 0..=1)]
+        #[arg(long, value_name = "WxH", default_missing_value = "1280x720", num_args = 0..=1, require_equals = true)]
         bypass_gamescope: Option<String>,
         appid: String,
     },

@@ -1,7 +1,9 @@
 use anyhow::{Result, bail};
 use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::fs;
 use std::path::PathBuf;
+use std::process::{self, Command};
 
 pub struct WineserverInfo {
     pub appid: String,
@@ -18,6 +20,37 @@ impl WineserverInfo {
             }
         }
         bail!("No running game with appid {target_appid}");
+    }
+
+    pub fn wine_command<I, S>(
+        &self,
+        exe: &OsStr,
+        args: I,
+        bypass_gamescope: Option<&str>,
+    ) -> Result<Command>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        if !self.wine64.exists() {
+            bail!("wine64 not found at {}", self.wine64.display());
+        }
+
+        self.apply_env();
+
+        let mut cmd = Command::new(&self.wine64);
+
+        if let Some(res) = bypass_gamescope {
+            let desktop_name = format!("parton{}", process::id());
+            cmd.arg("explorer")
+                .arg(format!("/desktop={desktop_name},{res}"))
+                .arg(exe)
+                .args(args);
+        } else {
+            cmd.arg(exe).args(args);
+        }
+
+        Ok(cmd)
     }
 
     pub fn apply_env(&self) {
