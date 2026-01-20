@@ -40,6 +40,8 @@ parton attach --bypass-gamescope 1245620 "/games/steam/steamapps/compatdata/1245
 ```
 
 ## Launch another executable while preserving Steam launch options
+
+### Seamless Co-op for Elden Ring
 ```sh
-parton launch 1245620 --user-id 59710912 "Game/ersc_launcher.exe"
+parton launch 1245620 --user-id 59710912 "Game/ersc_launcher.exe" 
 ```
