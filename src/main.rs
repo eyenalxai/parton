@@ -83,7 +83,9 @@ enum CommandKind {
         steam_dir: Option<String>,
         #[arg(help = "Steam application ID (e.g. 123456)")]
         appid: String,
-        #[arg(help = "Path to executable, relative to game install directory")]
+        #[arg(
+            help = "Path to executable, relative to the game install root (example: Game/ersc_launcher.exe)"
+        )]
         exe: PathBuf,
     },
 }
