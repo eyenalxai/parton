@@ -41,6 +41,11 @@ parton attach --bypass-gamescope 1245620 "/games/steam/steamapps/compatdata/1245
 
 ### Launch another executable while preserving Steam launch options
 
+Keeps any launch options you set in Steam, for example:
+```sh
+LD_PRELOAD= gamescope -f -H 1440 -h 1440 -r 75 --mangoapp -- env LD_PRELOAD="$LD_PRELOAD" gamemoderun %command%
+```
+
 #### Seamless Co-op for Elden Ring
 ```sh
 parton launch 1245620 --user-id 59710912 "Game/ersc_launcher.exe" 
