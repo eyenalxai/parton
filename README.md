@@ -26,7 +26,7 @@ parton ps
 
 ## Run an installer
 ```sh
-parton run 1245620 parton run 2050650 ~/Downloads/Fluffy\ Mod\ Manager-818-3-068-1765672670/Modmanager.exe
+parton run 2050650 ~/Downloads/Fluffy\ Mod\ Manager-818-3-068-1765672670/Modmanager.exe
 ```
 
 ## Start something alongside a running game
