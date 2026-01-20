@@ -22,6 +22,11 @@ fn main() -> Result<()> {
             appid,
             exe,
         } => commands::run(dry_run, steam_dir, &appid, &exe),
+        CommandKind::Cmd {
+            dry_run,
+            steam_dir,
+            appid,
+        } => commands::cmd(dry_run, steam_dir, &appid),
         CommandKind::Attach {
             dry_run,
             bypass_gamescope,

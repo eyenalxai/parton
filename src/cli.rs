@@ -30,6 +30,15 @@ pub enum CommandKind {
         #[arg(help = "Path to Windows executable")]
         exe: PathBuf,
     },
+    #[command(about = "Open cmd.exe in a game's Proton prefix")]
+    Cmd {
+        #[arg(short = 'n', long, help = "Print the command without executing")]
+        dry_run: bool,
+        #[arg(short = 's', long, help = "Path to Steam installation")]
+        steam_dir: Option<String>,
+        #[arg(help = "Steam application ID (e.g. 123456)")]
+        appid: String,
+    },
     #[command(about = "Run an executable in an already-running game's Proton session")]
     Attach {
         #[arg(short = 'n', long, help = "Print the command without executing")]

@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -38,6 +38,34 @@ pub fn run(dry_run: bool, steam_dir: Option<String>, appid: &str, exe: &Path) ->
         proton_path: context.proton_path,
         exe_path: context.exe_full_path,
         compat_data_path: context.compat_data_path,
+        steam_client_path: steam.root_path().to_path_buf(),
+        app_id: appid.to_string(),
+        launch_options: None,
+    };
+
+    cmd.execute(dry_run)
+}
+
+pub fn cmd(dry_run: bool, steam_dir: Option<String>, appid: &str) -> Result<()> {
+    let steam = Steam::new(steam_dir)?;
+    let library_path = steam.find_library_for_app(appid)?;
+    let compat_tool = steam.get_compat_tool(appid)?;
+    let compat_tool_name = compat_tool
+        .as_ref()
+        .and_then(|t| t.name.as_ref())
+        .map_or("proton_experimental", String::as_str);
+    let proton_path = steam.get_proton_path(&library_path, compat_tool_name)?;
+    let compat_data_path = steam.get_compat_data_path(&library_path, appid);
+    let exe_path = compat_data_path.join("pfx/drive_c/windows/system32/cmd.exe");
+
+    if !exe_path.exists() {
+        bail!("Executable not found: {}", exe_path.display());
+    }
+
+    let cmd = ProtonCommand {
+        proton_path,
+        exe_path,
+        compat_data_path,
         steam_client_path: steam.root_path().to_path_buf(),
         app_id: appid.to_string(),
         launch_options: None,
