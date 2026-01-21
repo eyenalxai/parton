@@ -1,7 +1,6 @@
 mod cli;
 mod commands;
 mod completers;
-mod ipc;
 mod process;
 mod proton;
 mod steam;

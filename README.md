@@ -29,6 +29,13 @@ prex ps
 prex run 2050650 ~/Downloads/Fluffy\ Mod\ Manager-818-3-068-1765672670/Modmanager.exe
 ```
 
+### Reuse a running app (single-instance apps)
+```sh
+prex run --single-instance 489830 "/games/steam/steamapps/compatdata/489830/pfx/drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe" --download nxm://example
+```
+
+This uses `proton run` so the Windows app can handle its own single-instance logic.
+
 ### Print a game's Proton prefix path (pfx)
 ```sh
 prex path 2050650

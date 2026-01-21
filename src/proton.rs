@@ -1,7 +1,7 @@
 use anyhow::{Context, Result, bail};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command};
+use std::process::Command;
 
 use crate::process::spawn_and_wait;
 use crate::steam::Steam;
@@ -64,6 +64,7 @@ pub struct ProtonCommand {
     pub app_id: String,
     pub launch_options: Option<String>,
     pub args: Vec<OsString>,
+    pub use_run_verb: bool,
 }
 
 impl ProtonCommand {
@@ -74,7 +75,8 @@ impl ProtonCommand {
         let exe_path_lossy = self.exe_path.to_string_lossy();
         let exe_path =
             shlex::try_quote(exe_path_lossy.as_ref()).context("Failed to quote exe path")?;
-        let proton_cmd = format!("{proton_path} waitforexitandrun {exe_path}");
+        let verb = if self.use_run_verb { "run" } else { "waitforexitandrun" };
+        let proton_cmd = format!("{proton_path} {verb} {exe_path}");
         let args = self
             .args
             .iter()
@@ -139,23 +141,5 @@ impl ProtonCommand {
         }
 
         spawn_and_wait(cmd)
-    }
-
-    pub fn spawn(&self) -> Result<Child> {
-        let command_str = self.build_command()?;
-        let env_vars = self.build_env();
-
-        let mut cmd = Command::new("sh");
-        cmd.arg("-c").arg(&command_str);
-
-        for (key, value) in env_vars {
-            cmd.env(key, value);
-        }
-
-        if let Some(parent) = self.exe_path.parent() {
-            cmd.current_dir(parent);
-        }
-
-        Ok(cmd.spawn()?)
     }
 }
