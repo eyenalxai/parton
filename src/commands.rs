@@ -3,8 +3,11 @@ use clap::CommandFactory;
 use clap_complete::Shell;
 use clap_complete::env::{Bash, Elvish, EnvCompleter, Fish, Powershell, Zsh};
 use std::ffi::OsString;
+use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
+use crate::ipc;
 use crate::process::{format_command, spawn_and_wait_wine};
 use crate::proton::{ProtonCommand, resolve_launch_context};
 use crate::steam::{Steam, get_game_name};
@@ -40,9 +43,11 @@ pub fn run(
     appid: &str,
     exe: &Path,
     args: Vec<OsString>,
+    single_instance: bool,
 ) -> Result<()> {
     let steam = Steam::new(steam_dir)?;
     let context = resolve_launch_context(&steam, appid, exe, false)?;
+    let exe_full_path = context.exe_full_path.clone();
     let cmd = ProtonCommand {
         proton_path: context.proton_path,
         exe_path: context.exe_full_path,
@@ -53,7 +58,49 @@ pub fn run(
         args,
     };
 
-    cmd.execute(dry_run)
+    if !single_instance {
+        return cmd.execute(dry_run);
+    }
+
+    if dry_run {
+        return cmd.execute(true);
+    }
+
+    let socket_path = ipc::socket_path(appid, &exe_full_path);
+    if ipc::send_to_daemon(&socket_path, &cmd.args).is_ok() {
+        return Ok(());
+    }
+
+    if socket_path.exists() {
+        let _ = fs::remove_file(&socket_path);
+    }
+
+    let listener = ipc::bind_listener(&socket_path)?;
+    let mut child = cmd.spawn()?;
+
+    loop {
+        if let Some(received_args) = ipc::try_receive_args(&listener)? {
+            let appid = appid.to_string();
+            let exe_path = exe_full_path.clone();
+            std::thread::spawn(move || {
+                let _ = attach(false, &appid, exe_path, received_args, None);
+            });
+        }
+
+        match child.try_wait()? {
+            Some(status) => {
+                let _ = fs::remove_file(&socket_path);
+                if status.success() {
+                    return Ok(());
+                }
+                let code = status
+                    .code()
+                    .map_or_else(|| "unknown".to_string(), |c| c.to_string());
+                bail!("Command exited with status: {}", code);
+            }
+            None => std::thread::sleep(Duration::from_millis(100)),
+        }
+    }
 }
 
 pub fn cmd(

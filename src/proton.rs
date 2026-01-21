@@ -1,7 +1,7 @@
 use anyhow::{Context, Result, bail};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Child, Command};
 
 use crate::process::spawn_and_wait;
 use crate::steam::Steam;
@@ -139,5 +139,23 @@ impl ProtonCommand {
         }
 
         spawn_and_wait(cmd)
+    }
+
+    pub fn spawn(&self) -> Result<Child> {
+        let command_str = self.build_command()?;
+        let env_vars = self.build_env();
+
+        let mut cmd = Command::new("sh");
+        cmd.arg("-c").arg(&command_str);
+
+        for (key, value) in env_vars {
+            cmd.env(key, value);
+        }
+
+        if let Some(parent) = self.exe_path.parent() {
+            cmd.current_dir(parent);
+        }
+
+        Ok(cmd.spawn()?)
     }
 }

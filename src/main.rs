@@ -1,6 +1,7 @@
 mod cli;
 mod commands;
 mod completers;
+mod ipc;
 mod process;
 mod proton;
 mod steam;
@@ -23,10 +24,11 @@ fn main() -> Result<()> {
         CommandKind::Run {
             dry_run,
             steam_dir,
+            single_instance,
             appid,
             exe,
             args,
-        } => commands::run(dry_run, steam_dir, &appid, &exe, args),
+        } => commands::run(dry_run, steam_dir, &appid, &exe, args, single_instance),
         CommandKind::Cmd {
             dry_run,
             steam_dir,

@@ -37,6 +37,8 @@ pub enum CommandKind {
         dry_run: bool,
         #[arg(short = 's', long, help = "Path to Steam installation")]
         steam_dir: Option<String>,
+        #[arg(long, help = "Reuse existing instance if running")]
+        single_instance: bool,
         #[arg(
             help = "Steam application ID (e.g. 123456)",
             add = ArgValueCompleter::new(complete_installed_appid)
