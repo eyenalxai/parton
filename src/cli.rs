@@ -15,7 +15,7 @@ pub struct Cli {
         long,
         action = clap::ArgAction::Help,
         help = "Print help",
-        display_order = 999
+        hide = true
     )]
     help: Option<bool>,
     #[command(subcommand)]
