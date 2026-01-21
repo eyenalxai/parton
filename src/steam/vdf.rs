@@ -51,6 +51,12 @@ pub struct CompatToolEntry {
     pub name: Option<String>,
 }
 
+impl CompatToolEntry {
+    pub fn name_or_default(&self) -> &str {
+        self.name.as_deref().unwrap_or("proton_experimental")
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct UserLocalConfigStore {
     #[serde(rename = "Software")]

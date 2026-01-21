@@ -36,9 +36,18 @@ impl WineserverInfo {
             bail!("wine64 not found at {}", self.wine64.display());
         }
 
-        self.apply_env();
-
         let mut cmd = Command::new(&self.wine64);
+        for var in [
+            "WINEFSYNC",
+            "WINEESYNC",
+            "SteamAppId",
+            "STEAM_COMPAT_DATA_PATH",
+        ] {
+            if let Some(val) = self.env.get(var) {
+                cmd.env(var, val);
+            }
+        }
+        cmd.env("WINEPREFIX", self.compatdata.join("prex"));
 
         if let Some(res) = bypass_gamescope {
             let desktop_name = format!("prex{}", process::id());
@@ -53,21 +62,6 @@ impl WineserverInfo {
         Ok(cmd)
     }
 
-    pub fn apply_env(&self) {
-        unsafe {
-            for var in [
-                "WINEFSYNC",
-                "WINEESYNC",
-                "SteamAppId",
-                "STEAM_COMPAT_DATA_PATH",
-            ] {
-                if let Some(val) = self.env.get(var) {
-                    std::env::set_var(var, val);
-                }
-            }
-            std::env::set_var("WINEPREFIX", self.compatdata.join("prex"));
-        }
-    }
 }
 
 #[must_use]

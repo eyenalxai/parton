@@ -13,7 +13,7 @@ fn matches_prefix(current: &OsStr, value: &str) -> bool {
         .is_some_and(|prefix| value.starts_with(prefix))
 }
 
-fn compatdata_from_exe_path(exe_path: &Path) -> &Path {
+pub fn compatdata_from_exe_path(exe_path: &Path) -> &Path {
     exe_path
         .ancestors()
         .find(|path| path.file_name().is_some_and(|name| name == "pfx"))

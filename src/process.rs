@@ -88,7 +88,14 @@ pub fn spawn_and_wait_wine(
 pub fn format_command(cmd: &Command) -> String {
     std::iter::once(cmd.get_program())
         .chain(cmd.get_args())
-        .map(|part| part.to_string_lossy())
+        .map(|part| {
+            let part_lossy = part.to_string_lossy();
+            let part_owned = part_lossy.into_owned();
+            match shlex::try_quote(part_owned.as_str()) {
+                Ok(value) => value.into_owned(),
+                Err(_) => part_owned,
+            }
+        })
         .collect::<Vec<_>>()
         .join(" ")
 }

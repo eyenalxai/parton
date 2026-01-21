@@ -52,7 +52,11 @@ fn main() -> Result<()> {
         } => commands::launch(dry_run, user_id, steam_dir, &appid, &exe, args),
         CommandKind::Path { steam_dir, appid } => commands::path(steam_dir, &appid),
         CommandKind::Mm { action } => match action {
-            MmAction::Add { appid, exe } => commands::mm_add(None, &appid, &exe),
+            MmAction::Add {
+                steam_dir,
+                appid,
+                exe,
+            } => commands::mm_add(steam_dir, &appid, &exe),
             MmAction::Remove { appid } => commands::mm_remove(&appid),
             MmAction::Ls => commands::mm_list(),
             MmAction::SetActive { appid } => commands::mm_set_active(&appid),

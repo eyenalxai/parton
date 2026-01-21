@@ -1,6 +1,6 @@
 use anyhow::{Context, Result, anyhow};
 use directories::ProjectDirs;
-use rusqlite::{Connection, params};
+use rusqlite::{Connection, Row, params};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -9,6 +9,14 @@ pub struct ModManagerEntry {
     pub appid: String,
     pub exe_path: PathBuf,
     pub is_active: bool,
+}
+
+fn row_to_entry(row: &Row) -> rusqlite::Result<ModManagerEntry> {
+    Ok(ModManagerEntry {
+        appid: row.get(0)?,
+        exe_path: PathBuf::from(row.get::<_, String>(1)?),
+        is_active: row.get::<_, i64>(2)? != 0,
+    })
 }
 
 fn db_path() -> Result<PathBuf> {
@@ -70,13 +78,7 @@ pub fn list_mod_managers() -> Result<Vec<ModManagerEntry>> {
         .prepare("SELECT appid, exe_path, is_active FROM mod_managers ORDER BY appid")
         .context("Reading mod manager entries")?;
     let rows = stmt
-        .query_map([], |row| {
-            Ok(ModManagerEntry {
-                appid: row.get(0)?,
-                exe_path: PathBuf::from(row.get::<_, String>(1)?),
-                is_active: row.get::<_, i64>(2)? != 0,
-            })
-        })
+        .query_map([], row_to_entry)
         .context("Mapping mod manager entries")?;
     let mut entries = Vec::new();
     for row in rows {
@@ -109,13 +111,7 @@ pub fn get_active() -> Result<Option<ModManagerEntry>> {
         .prepare("SELECT appid, exe_path, is_active FROM mod_managers WHERE is_active = 1")
         .context("Reading active mod manager")?;
     let rows = stmt
-        .query_map([], |row| {
-            Ok(ModManagerEntry {
-                appid: row.get(0)?,
-                exe_path: PathBuf::from(row.get::<_, String>(1)?),
-                is_active: row.get::<_, i64>(2)? != 0,
-            })
-        })
+        .query_map([], row_to_entry)
         .context("Querying active mod manager")?;
     let mut entries = Vec::new();
     for row in rows {
@@ -123,7 +119,7 @@ pub fn get_active() -> Result<Option<ModManagerEntry>> {
     }
     match entries.len() {
         0 => Ok(None),
-        1 => Ok(entries.pop()),
+        1 => Ok(entries.into_iter().next()),
         _ => Err(anyhow!("Multiple active mod managers found")),
     }
 }

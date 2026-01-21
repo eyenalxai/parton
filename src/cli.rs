@@ -161,6 +161,8 @@ pub enum CommandKind {
 pub enum MmAction {
     #[command(about = "Register a mod manager for a game")]
     Add {
+        #[arg(short = 's', long, help = "Path to Steam installation")]
+        steam_dir: Option<String>,
         #[arg(
             help = "Steam application ID (e.g. 123456)",
             add = ArgValueCompleter::new(complete_installed_appid)

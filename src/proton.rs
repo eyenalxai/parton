@@ -43,8 +43,7 @@ pub fn resolve_launch_context(
     let compat_tool = steam.get_compat_tool(appid)?;
     let compat_tool_name = compat_tool
         .as_ref()
-        .and_then(|t| t.name.as_ref())
-        .map_or("proton_experimental", String::as_str);
+        .map_or("proton_experimental", |tool| tool.name_or_default());
 
     let proton_path = steam.get_proton_path(&library_path, compat_tool_name)?;
     let compat_data_path = steam.get_compat_data_path(&library_path, appid);

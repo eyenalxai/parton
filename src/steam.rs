@@ -15,6 +15,15 @@ pub struct Steam {
     root: PathBuf,
 }
 
+fn sort_by_numeric_id<T>(items: &mut [T], key: impl Fn(&T) -> &str) {
+    items.sort_by(|a, b| {
+        key(a)
+            .parse::<u64>()
+            .unwrap_or(0)
+            .cmp(&key(b).parse::<u64>().unwrap_or(0))
+    });
+}
+
 impl Steam {
     pub fn new(steam_dir: Option<String>) -> Result<Self> {
         let root = match steam_dir {
@@ -163,11 +172,7 @@ impl Steam {
         }
 
         // Sort by app_id for consistent output
-        games.sort_by(|a, b| {
-            a.0.parse::<u64>()
-                .unwrap_or(0)
-                .cmp(&b.0.parse::<u64>().unwrap_or(0))
-        });
+        sort_by_numeric_id(&mut games, |(app_id, _, _)| app_id);
 
         Ok(games)
     }
@@ -305,11 +310,7 @@ impl Steam {
         }
 
         // Sort by user_id for consistent output
-        users.sort_by(|a, b| {
-            a.0.parse::<u64>()
-                .unwrap_or(0)
-                .cmp(&b.0.parse::<u64>().unwrap_or(0))
-        });
+        sort_by_numeric_id(&mut users, |(user_id, _)| user_id);
 
         Ok(users)
     }

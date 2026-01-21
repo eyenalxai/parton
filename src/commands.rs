@@ -5,6 +5,7 @@ use clap_complete::env::{Bash, Elvish, EnvCompleter, Fish, Powershell, Zsh};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+use crate::completers::compatdata_from_exe_path;
 use crate::db;
 use crate::process::{format_command, spawn_and_wait_wine};
 use crate::proton::{ProtonCommand, resolve_launch_context};
@@ -69,11 +70,10 @@ pub fn cmd(
     let compat_tool = steam.get_compat_tool(appid)?;
     let compat_tool_name = compat_tool
         .as_ref()
-        .and_then(|t| t.name.as_ref())
-        .map_or("proton_experimental", String::as_str);
+        .map_or("proton_experimental", |tool| tool.name_or_default());
     let proton_path = steam.get_proton_path(&library_path, compat_tool_name)?;
     let compat_data_path = steam.get_compat_data_path(&library_path, appid);
-    let exe_path = compat_data_path.join("prex/drive_c/windows/system32/cmd.exe");
+    let exe_path = compat_data_path.join("pfx/drive_c/windows/system32/cmd.exe");
 
     if !exe_path.exists() {
         bail!("Executable not found: {}", exe_path.display());
@@ -212,12 +212,7 @@ pub fn mm_list() -> Result<()> {
         return Ok(());
     }
     for entry in entries {
-        let compatdata = entry
-            .exe_path
-            .ancestors()
-            .find(|path| path.file_name().is_some_and(|name| name == "pfx"))
-            .and_then(|pfx| pfx.parent())
-            .unwrap_or(entry.exe_path.as_path());
+        let compatdata = compatdata_from_exe_path(&entry.exe_path);
         let name = get_game_name(compatdata, &entry.appid);
         let active = if entry.is_active { "active" } else { "inactive" };
         println!(
