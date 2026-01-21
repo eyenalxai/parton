@@ -57,3 +57,20 @@ LD_PRELOAD= gamescope -f -H 1440 -h 1440 -r 75 --mangoapp -- env LD_PRELOAD="$LD
 ```sh
 prex launch 1245620 --user-id 59710912 "Game/ersc_launcher.exe" 
 ```
+
+### Shell completions
+
+Dynamic completions are generated at shell runtime. These examples source the generated script on startup:
+
+**Bash**
+```sh
+echo 'source <(COMPLETE=bash prex)' >> ~/.bashrc
+```
+
+**Zsh**
+```sh
+echo 'source <(COMPLETE=zsh prex)' >> ~/.zshrc
+```
+Supported shells: bash, zsh, fish, elvish, (powershell ಠ_ಠ).
+
+I only use bash and zsh, no idea for other shells.
