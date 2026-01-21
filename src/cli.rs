@@ -9,7 +9,15 @@ use crate::completers::{complete_installed_appid, complete_running_appid, comple
 #[derive(Parser)]
 #[command(name = "prex")]
 #[command(about = "Run Windows executables in Proton contexts")]
+#[command(disable_help_subcommand = true, disable_help_flag = true)]
 pub struct Cli {
+    #[arg(
+        long,
+        action = clap::ArgAction::Help,
+        help = "Print help",
+        display_order = 999
+    )]
+    help: Option<bool>,
     #[command(subcommand)]
     pub command: CommandKind,
 }
