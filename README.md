@@ -36,6 +36,29 @@ prex run --single-instance 489830 "/games/steam/steamapps/compatdata/489830/pfx/
 
 This uses `proton run` so the Windows app can handle its own single-instance logic.
 
+### NXM handling (mod manager registration)
+Register a mod manager for a game (the exe must live inside that game's prefix):
+```sh
+prex mm add 489830 "/games/steam/steamapps/compatdata/489830/pfx/drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe"
+prex mm set-active 489830
+```
+
+Handle NXM links with the active mod manager:
+```sh
+prex nxm "nxm://skyrimspecialedition/mods/12345"
+```
+
+Example desktop entry:
+```ini
+[Desktop Entry]
+Name=Prex NXM Handler
+Comment=Handle NXM links for active mod manager
+Type=Application
+NoDisplay=true
+MimeType=x-scheme-handler/nxm;
+Exec=prex nxm %u
+```
+
 ### Print a game's Proton prefix path (pfx)
 ```sh
 prex path 2050650

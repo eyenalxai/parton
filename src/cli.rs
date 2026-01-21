@@ -135,9 +135,42 @@ pub enum CommandKind {
         )]
         appid: String,
     },
+    #[command(about = "Manage mod managers")]
+    Mm {
+        #[command(subcommand)]
+        action: MmAction,
+    },
+    #[command(about = "Handle NXM link")]
+    Nxm {
+        #[arg(help = "NXM URL (nxm://...)")]
+        url: String,
+    },
     #[command(about = "Generate shell completions")]
     Completions {
         #[arg(help = "Shell to generate completions for (bash, zsh, fish, elvish, powershell)")]
         shell: Shell,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum MmAction {
+    #[command(about = "Register a mod manager for a game")]
+    Add {
+        #[arg(help = "Steam application ID (e.g. 123456)")]
+        appid: String,
+        #[arg(help = "Path to mod manager executable")]
+        exe: PathBuf,
+    },
+    #[command(about = "Remove a registered mod manager")]
+    Remove {
+        #[arg(help = "Steam application ID (e.g. 123456)")]
+        appid: String,
+    },
+    #[command(about = "List registered mod managers")]
+    List,
+    #[command(about = "Set the active mod manager for NXM links")]
+    SetActive {
+        #[arg(help = "Steam application ID (e.g. 123456)")]
+        appid: String,
     },
 }

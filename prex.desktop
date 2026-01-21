@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Prex NXM Handler
+Comment=Handle NXM links for active mod manager
+Type=Application
+NoDisplay=true
+MimeType=x-scheme-handler/nxm;
+Exec=prex nxm %u

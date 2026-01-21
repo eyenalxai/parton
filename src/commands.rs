@@ -5,6 +5,7 @@ use clap_complete::env::{Bash, Elvish, EnvCompleter, Fish, Powershell, Zsh};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+use crate::db;
 use crate::process::{format_command, spawn_and_wait_wine};
 use crate::proton::{ProtonCommand, resolve_launch_context};
 use crate::steam::{Steam, get_game_name};
@@ -173,4 +174,74 @@ pub fn completions(shell: Shell) -> Result<()> {
     };
     env_completer.write_registration("COMPLETE", &name, &bin, &completer, &mut stdout)?;
     Ok(())
+}
+
+pub fn mm_add(steam_dir: Option<String>, appid: &str, exe: &Path) -> Result<()> {
+    let steam = Steam::new(steam_dir)?;
+    let library_path = steam.find_library_for_app(appid)?;
+    let compat_data_path = steam.get_compat_data_path(&library_path, appid);
+    let prefix_path = compat_data_path.join("pfx");
+    if !prefix_path.exists() {
+        bail!("Prefix not found: {}", prefix_path.display());
+    }
+
+    let exe_path = exe.canonicalize()?;
+    let prefix_path = prefix_path.canonicalize()?;
+    if !exe_path.starts_with(&prefix_path) {
+        bail!(
+            "Executable must be inside the prefix: {}",
+            prefix_path.display()
+        );
+    }
+
+    db::add_mod_manager(appid, &exe_path)?;
+    println!("Registered mod manager for appid {appid}");
+    Ok(())
+}
+
+pub fn mm_remove(appid: &str) -> Result<()> {
+    db::remove_mod_manager(appid)?;
+    println!("Removed mod manager for appid {appid}");
+    Ok(())
+}
+
+pub fn mm_list() -> Result<()> {
+    let entries = db::list_mod_managers()?;
+    if entries.is_empty() {
+        println!("No mod managers registered");
+        return Ok(());
+    }
+    for entry in entries {
+        let active = if entry.is_active { "active" } else { "inactive" };
+        println!("{}\t{}\t{}", entry.appid, active, entry.exe_path.display());
+    }
+    Ok(())
+}
+
+pub fn mm_set_active(appid: &str) -> Result<()> {
+    db::set_active(appid)?;
+    println!("Set active mod manager to appid {appid}");
+    Ok(())
+}
+
+pub fn nxm(url: &str) -> Result<()> {
+    let active = db::get_active()?;
+    let Some(active) = active else {
+        bail!("No active mod manager set. Use `prex mm set-active` first.");
+    };
+
+    let steam = Steam::new(None)?;
+    let args = vec![OsString::from("--download"), OsString::from(url)];
+    let context = resolve_launch_context(&steam, &active.appid, &active.exe_path, false)?;
+    let cmd = ProtonCommand {
+        proton_path: context.proton_path,
+        exe_path: context.exe_full_path,
+        compat_data_path: context.compat_data_path,
+        steam_client_path: steam.root_path().to_path_buf(),
+        app_id: active.appid,
+        launch_options: None,
+        args,
+        use_run_verb: true,
+    };
+    cmd.execute(false)
 }
