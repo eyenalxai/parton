@@ -46,6 +46,17 @@ impl Steam {
             }
         }
 
+        for entry in folders.libraries.values() {
+            let library_path = PathBuf::from(&entry.path);
+            let compatdata_path = library_path
+                .join("steamapps")
+                .join("compatdata")
+                .join(app_id);
+            if compatdata_path.is_dir() {
+                return Ok(library_path);
+            }
+        }
+
         bail!("App {} not found in any Steam library", app_id);
     }
 
