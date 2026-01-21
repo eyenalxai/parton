@@ -1,4 +1,7 @@
 use anyhow::{Result, bail};
+use clap::CommandFactory;
+use clap_complete::Shell;
+use clap_complete::env::{Bash, Elvish, EnvCompleter, Fish, Powershell, Zsh};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -131,5 +134,25 @@ pub fn path(steam_dir: Option<String>, appid: &str) -> Result<()> {
     }
 
     println!("{}", prefix_path.display());
+    Ok(())
+}
+
+pub fn completions(shell: Shell) -> Result<()> {
+    let cmd = crate::cli::Cli::command();
+    let name = cmd.get_name().to_string();
+    let bin = cmd.get_bin_name().unwrap_or(cmd.get_name()).to_string();
+    let completer = std::env::current_exe()
+        .ok()
+        .map_or_else(|| bin.clone(), |path| path.to_string_lossy().to_string());
+    let mut stdout = std::io::stdout();
+    let env_completer: &dyn EnvCompleter = match shell {
+        Shell::Bash => &Bash,
+        Shell::Zsh => &Zsh,
+        Shell::Fish => &Fish,
+        Shell::Elvish => &Elvish,
+        Shell::PowerShell => &Powershell,
+        _ => bail!("Unsupported shell for dynamic completions"),
+    };
+    env_completer.write_registration("COMPLETE", &name, &bin, &completer, &mut stdout)?;
     Ok(())
 }

@@ -1,6 +1,10 @@
 use clap::{Parser, Subcommand};
+use clap_complete::Shell;
+use clap_complete::engine::ArgValueCompleter;
 use std::ffi::OsString;
 use std::path::PathBuf;
+
+use crate::completers::{complete_installed_appid, complete_running_appid, complete_user_id};
 
 #[derive(Parser)]
 #[command(name = "prex")]
@@ -25,7 +29,10 @@ pub enum CommandKind {
         dry_run: bool,
         #[arg(short = 's', long, help = "Path to Steam installation")]
         steam_dir: Option<String>,
-        #[arg(help = "Steam application ID (e.g. 123456)")]
+        #[arg(
+            help = "Steam application ID (e.g. 123456)",
+            add = ArgValueCompleter::new(complete_installed_appid)
+        )]
         appid: String,
         #[arg(help = "Path to Windows executable")]
         exe: PathBuf,
@@ -36,7 +43,10 @@ pub enum CommandKind {
         dry_run: bool,
         #[arg(short = 's', long, help = "Path to Steam installation")]
         steam_dir: Option<String>,
-        #[arg(help = "Steam application ID (e.g. 123456)")]
+        #[arg(
+            help = "Steam application ID (e.g. 123456)",
+            add = ArgValueCompleter::new(complete_installed_appid)
+        )]
         appid: String,
     },
     #[command(about = "Run an executable in an already-running game's Proton session")]
@@ -52,7 +62,10 @@ pub enum CommandKind {
             help = "Escape gamescope using a virtual desktop"
         )]
         bypass_gamescope: Option<String>,
-        #[arg(help = "Steam application ID (e.g. 123456)")]
+        #[arg(
+            help = "Steam application ID (e.g. 123456)",
+            add = ArgValueCompleter::new(complete_running_appid)
+        )]
         appid: String,
         #[arg(help = "Path to Windows executable")]
         exe: PathBuf,
@@ -75,12 +88,16 @@ pub enum CommandKind {
         #[arg(
             short = 'u',
             long,
-            help = "Steam user ID (auto-detected if only one user)"
+            help = "Steam user ID (auto-detected if only one user)",
+            add = ArgValueCompleter::new(complete_user_id)
         )]
         user_id: Option<String>,
         #[arg(short = 's', long, help = "Path to Steam installation")]
         steam_dir: Option<String>,
-        #[arg(help = "Steam application ID (e.g. 123456)")]
+        #[arg(
+            help = "Steam application ID (e.g. 123456)",
+            add = ArgValueCompleter::new(complete_installed_appid)
+        )]
         appid: String,
         #[arg(
             help = "Path to executable, relative to the game install root (example: Game/ersc_launcher.exe)"
@@ -91,7 +108,15 @@ pub enum CommandKind {
     Path {
         #[arg(short = 's', long, help = "Path to Steam installation")]
         steam_dir: Option<String>,
-        #[arg(help = "Steam application ID (e.g. 123456)")]
+        #[arg(
+            help = "Steam application ID (e.g. 123456)",
+            add = ArgValueCompleter::new(complete_installed_appid)
+        )]
         appid: String,
+    },
+    #[command(about = "Generate shell completions")]
+    Completions {
+        #[arg(help = "Shell to generate completions for (bash, zsh, fish, elvish, powershell)")]
+        shell: Shell,
     },
 }

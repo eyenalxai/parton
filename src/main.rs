@@ -1,15 +1,19 @@
 mod cli;
 mod commands;
+mod completers;
 mod process;
 mod proton;
 mod steam;
 mod wineserver;
 
 use anyhow::Result;
-use clap::Parser;
+use clap::{CommandFactory as _, Parser};
+use clap_complete::CompleteEnv;
 use cli::{Cli, CommandKind};
 
 fn main() -> Result<()> {
+    CompleteEnv::with_factory(Cli::command).complete();
+
     let cli = Cli::parse();
 
     match cli.command {
@@ -42,5 +46,6 @@ fn main() -> Result<()> {
             exe,
         } => commands::launch(dry_run, user_id, steam_dir, &appid, &exe),
         CommandKind::Path { steam_dir, appid } => commands::path(steam_dir, &appid),
+        CommandKind::Completions { shell } => commands::completions(shell),
     }
 }
