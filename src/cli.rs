@@ -4,7 +4,12 @@ use clap_complete::engine::ArgValueCompleter;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
-use crate::completers::{complete_installed_appid, complete_running_appid, complete_user_id};
+use crate::completers::{
+    complete_installed_appid,
+    complete_registered_appid,
+    complete_running_appid,
+    complete_user_id,
+};
 
 #[derive(Parser)]
 #[command(name = "prex")]
@@ -156,21 +161,30 @@ pub enum CommandKind {
 pub enum MmAction {
     #[command(about = "Register a mod manager for a game")]
     Add {
-        #[arg(help = "Steam application ID (e.g. 123456)")]
+        #[arg(
+            help = "Steam application ID (e.g. 123456)",
+            add = ArgValueCompleter::new(complete_installed_appid)
+        )]
         appid: String,
         #[arg(help = "Path to mod manager executable")]
         exe: PathBuf,
     },
     #[command(about = "Remove a registered mod manager")]
     Remove {
-        #[arg(help = "Steam application ID (e.g. 123456)")]
+        #[arg(
+            help = "Steam application ID (e.g. 123456)",
+            add = ArgValueCompleter::new(complete_registered_appid)
+        )]
         appid: String,
     },
     #[command(about = "List registered mod managers")]
-    List,
+    Ls,
     #[command(about = "Set the active mod manager for NXM links")]
     SetActive {
-        #[arg(help = "Steam application ID (e.g. 123456)")]
+        #[arg(
+            help = "Steam application ID (e.g. 123456)",
+            add = ArgValueCompleter::new(complete_registered_appid)
+        )]
         appid: String,
     },
 }

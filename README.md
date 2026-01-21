@@ -40,7 +40,14 @@ This uses `proton run` so the Windows app can handle its own single-instance log
 Register a mod manager for a game (the exe must live inside that game's prefix):
 ```sh
 prex mm add 489830 "/games/steam/steamapps/compatdata/489830/pfx/drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe"
+prex mm ls
+489830  The Elder Scrolls V: Skyrim Special Edition  inactive  /games/steam/steamapps/compatdata/489830/pfx/drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe
 prex mm set-active 489830
+```
+
+Remove a mod manager registration:
+```sh
+prex mm remove 489830
 ```
 
 Handle NXM links with the active mod manager:

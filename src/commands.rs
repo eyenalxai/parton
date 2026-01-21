@@ -212,8 +212,21 @@ pub fn mm_list() -> Result<()> {
         return Ok(());
     }
     for entry in entries {
+        let compatdata = entry
+            .exe_path
+            .ancestors()
+            .find(|path| path.file_name().is_some_and(|name| name == "pfx"))
+            .and_then(|pfx| pfx.parent())
+            .unwrap_or(entry.exe_path.as_path());
+        let name = get_game_name(compatdata, &entry.appid);
         let active = if entry.is_active { "active" } else { "inactive" };
-        println!("{}\t{}\t{}", entry.appid, active, entry.exe_path.display());
+        println!(
+            "{}\t{}\t{}\t{}",
+            entry.appid,
+            name,
+            active,
+            entry.exe_path.display()
+        );
     }
     Ok(())
 }

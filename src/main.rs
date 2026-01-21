@@ -54,7 +54,7 @@ fn main() -> Result<()> {
         CommandKind::Mm { action } => match action {
             MmAction::Add { appid, exe } => commands::mm_add(None, &appid, &exe),
             MmAction::Remove { appid } => commands::mm_remove(&appid),
-            MmAction::List => commands::mm_list(),
+            MmAction::Ls => commands::mm_list(),
             MmAction::SetActive { appid } => commands::mm_set_active(&appid),
         },
         CommandKind::Nxm { url } => commands::nxm(&url),
