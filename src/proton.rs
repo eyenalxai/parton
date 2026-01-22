@@ -1,5 +1,5 @@
-use anyhow::{Context, Result, bail};
-use std::ffi::OsString;
+use anyhow::{Context, Result, anyhow, bail};
+use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -41,13 +41,7 @@ pub fn resolve_launch_context(
         bail!("Executable not found: {}", exe_full_path.display());
     }
 
-    let compat_tool = steam.get_compat_tool(appid)?;
-    let compat_tool_name = compat_tool
-        .as_ref()
-        .map_or("proton_experimental", |tool| tool.name_or_default());
-
-    let proton_path = steam.get_proton_path(&library_path, compat_tool_name)?;
-    let compat_data_path = steam.get_compat_data_path(&library_path, appid);
+    let (proton_path, compat_data_path) = steam.resolve_proton_paths(appid)?;
 
     Ok(LaunchContext {
         exe_full_path,
@@ -68,21 +62,33 @@ pub struct ProtonCommand {
 }
 
 impl ProtonCommand {
+    fn path_to_string(path: &Path, label: &str) -> Result<String> {
+        path.to_str()
+            .map(|value| value.to_string())
+            .ok_or_else(|| anyhow!("{label} contains invalid UTF-8: {}", path.display()))
+    }
+
+    fn os_str_to_string(value: &OsStr, label: &str) -> Result<String> {
+        value
+            .to_str()
+            .map(|value| value.to_string())
+            .ok_or_else(|| anyhow!("{label} contains invalid UTF-8"))
+    }
+
     fn build_command(&self) -> Result<String> {
-        let proton_path_lossy = self.proton_path.to_string_lossy();
+        let proton_path = Self::path_to_string(&self.proton_path, "Proton path")?;
         let proton_path =
-            shlex::try_quote(proton_path_lossy.as_ref()).context("Failed to quote proton path")?;
-        let exe_path_lossy = self.exe_path.to_string_lossy();
-        let exe_path =
-            shlex::try_quote(exe_path_lossy.as_ref()).context("Failed to quote exe path")?;
+            shlex::try_quote(proton_path.as_str()).context("Failed to quote proton path")?;
+        let exe_path = Self::path_to_string(&self.exe_path, "Executable path")?;
+        let exe_path = shlex::try_quote(exe_path.as_str()).context("Failed to quote exe path")?;
         let verb = if self.use_run_verb { "run" } else { "waitforexitandrun" };
         let proton_cmd = format!("{proton_path} {verb} {exe_path}");
         let args = self
             .args
             .iter()
             .map(|arg| {
-                let arg_lossy = arg.to_string_lossy().into_owned();
-                shlex::try_quote(arg_lossy.as_str())
+                let arg = Self::os_str_to_string(arg, "Argument")?;
+                shlex::try_quote(arg.as_str())
                     .map(|value| value.into_owned())
                     .context("Failed to quote argument")
             })
@@ -100,24 +106,24 @@ impl ProtonCommand {
         }
     }
 
-    fn build_env(&self) -> Vec<(&'static str, String)> {
-        vec![
+    fn build_env(&self) -> Result<Vec<(&'static str, String)>> {
+        Ok(vec![
             (
                 "STEAM_COMPAT_DATA_PATH",
-                self.compat_data_path.to_string_lossy().to_string(),
+                Self::path_to_string(&self.compat_data_path, "Compat data path")?,
             ),
             (
                 "STEAM_COMPAT_CLIENT_INSTALL_PATH",
-                self.steam_client_path.to_string_lossy().to_string(),
+                Self::path_to_string(&self.steam_client_path, "Steam client path")?,
             ),
             ("SteamAppId", self.app_id.clone()),
             ("SteamGameId", self.app_id.clone()),
-        ]
+        ])
     }
 
     pub fn execute(&self, dry_run: bool) -> Result<()> {
         let command_str = self.build_command()?;
-        let env_vars = self.build_env();
+        let env_vars = self.build_env()?;
 
         if dry_run {
             println!("Environment:");

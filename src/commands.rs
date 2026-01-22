@@ -67,13 +67,7 @@ pub fn cmd(
     args: Vec<OsString>,
 ) -> Result<()> {
     let steam = Steam::new(steam_dir)?;
-    let library_path = steam.find_library_for_app(appid)?;
-    let compat_tool = steam.get_compat_tool(appid)?;
-    let compat_tool_name = compat_tool
-        .as_ref()
-        .map_or("proton_experimental", |tool| tool.name_or_default());
-    let proton_path = steam.get_proton_path(&library_path, compat_tool_name)?;
-    let compat_data_path = steam.get_compat_data_path(&library_path, appid);
+    let (proton_path, compat_data_path) = steam.resolve_proton_paths(appid)?;
     let exe_path = compat_data_path.join("pfx/drive_c/windows/system32/cmd.exe");
 
     if !exe_path.exists() {

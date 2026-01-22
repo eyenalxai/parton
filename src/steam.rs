@@ -19,8 +19,8 @@ fn sort_by_numeric_id<T>(items: &mut [T], key: impl Fn(&T) -> &str) {
     items.sort_by(|a, b| {
         key(a)
             .parse::<u64>()
-            .unwrap_or(0)
-            .cmp(&key(b).parse::<u64>().unwrap_or(0))
+            .unwrap_or(u64::MAX)
+            .cmp(&key(b).parse::<u64>().unwrap_or(u64::MAX))
     });
 }
 
@@ -95,6 +95,18 @@ impl Steam {
         let mapping = &config.software.valve.steam.compat_tool_mapping;
 
         Ok(mapping.get(app_id).cloned())
+    }
+
+    pub fn resolve_proton_paths(&self, app_id: &str) -> Result<(PathBuf, PathBuf)> {
+        let library_path = self.find_library_for_app(app_id)?;
+        let compat_tool = self.get_compat_tool(app_id)?;
+        let compat_tool_name = compat_tool
+            .as_ref()
+            .map_or("proton_experimental", |tool| tool.name_or_default());
+        let proton_path = self.get_proton_path(&library_path, compat_tool_name)?;
+        let compat_data_path = self.get_compat_data_path(&library_path, app_id);
+
+        Ok((proton_path, compat_data_path))
     }
 
     /// List all installed games that have a Proton compatdata prefix.

@@ -46,13 +46,20 @@ fn init_schema(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+fn path_to_string(path: &Path) -> Result<String> {
+    path.to_str()
+        .map(|value| value.to_string())
+        .ok_or_else(|| anyhow!("Path contains invalid UTF-8: {}", path.display()))
+}
+
 pub fn add_mod_manager(appid: &str, exe_path: &Path) -> Result<()> {
     let conn = open_db()?;
+    let exe_path = path_to_string(exe_path)?;
     conn.execute(
         "INSERT INTO mod_managers (appid, exe_path, is_active)
          VALUES (?1, ?2, COALESCE((SELECT is_active FROM mod_managers WHERE appid = ?1), 0))
          ON CONFLICT(appid) DO UPDATE SET exe_path = excluded.exe_path;",
-        params![appid, exe_path.to_string_lossy()],
+        params![appid, exe_path],
     )
     .context("Saving mod manager entry")?;
     Ok(())
