@@ -47,7 +47,7 @@ impl WineserverInfo {
                 cmd.env(var, val);
             }
         }
-        cmd.env("WINEPREFIX", self.compatdata.join("prex"));
+        cmd.env("WINEPREFIX", self.compatdata.join("pfx"));
 
         if let Some(res) = bypass_gamescope {
             let desktop_name = format!("prex{}", process::id());
