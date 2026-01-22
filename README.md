@@ -34,8 +34,6 @@ prex run 2050650 ~/Downloads/Fluffy\ Mod\ Manager-818-3-068-1765672670/Modmanage
 prex run --single-instance 489830 "/games/steam/steamapps/compatdata/489830/pfx/drive_c/Program Files/Black Tree Gaming Ltd/Vortex/Vortex.exe" --download nxm://example
 ```
 
-This uses `proton run` so the Windows app can handle its own single-instance logic.
-
 ### NXM handling (mod manager registration)
 Register a mod manager for a game (the exe must live inside that game's prefix):
 ```sh
@@ -109,5 +107,3 @@ echo 'source <(COMPLETE=bash prex)' >> ~/.bashrc
 echo 'source <(COMPLETE=zsh prex)' >> ~/.zshrc
 ```
 Supported shells: bash, zsh, fish, elvish, (powershell ಠ_ಠ).
-
-I only use bash and zsh, no idea for other shells.
