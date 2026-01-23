@@ -1,6 +1,6 @@
 # prex
 
-Run Windows executables in Steam Proton environments.
+Run Windows executables in Steam Proton prefixes
 
 ### List all installed games
 ```sh
