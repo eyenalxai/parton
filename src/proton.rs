@@ -7,6 +7,18 @@ use crate::paths::logs_dir;
 use crate::process::spawn_and_wait;
 use crate::steam::Steam;
 
+pub fn find_wine_bin(dir: &Path) -> Option<PathBuf> {
+    let wine64 = dir.join("wine64");
+    if wine64.exists() {
+        return Some(wine64);
+    }
+    let wine = dir.join("wine");
+    if wine.exists() {
+        return Some(wine);
+    }
+    None
+}
+
 pub struct LaunchContext {
     pub exe_full_path: PathBuf,
     pub compat_data_path: PathBuf,

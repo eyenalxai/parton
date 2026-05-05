@@ -35,7 +35,7 @@ fn interrupted_flag() -> Result<&'static Arc<AtomicBool>> {
 
 pub fn spawn_and_wait_wine(
     mut cmd: Command,
-    wine64: Option<&Path>,
+    wine_bin: Option<&Path>,
     exe_to_kill: Option<&str>,
     kill_explorer: bool,
     log_file: Option<&Path>,
@@ -81,12 +81,12 @@ pub fn spawn_and_wait_wine(
                 anyhow::bail!("Command exited with status: {}", code);
             }
             None if interrupted.load(Ordering::SeqCst) => {
-                if let (Some(wine), Some(exe)) = (wine64, exe_to_kill) {
+                if let (Some(wine), Some(exe)) = (wine_bin, exe_to_kill) {
                     let _ = Command::new(wine)
                         .args(["taskkill", "/F", "/IM", exe])
                         .output();
                 }
-                if kill_explorer && let Some(wine) = wine64 {
+                if kill_explorer && let Some(wine) = wine_bin {
                     let _ = Command::new(wine)
                         .args(["taskkill", "/F", "/IM", "explorer.exe"])
                         .output();

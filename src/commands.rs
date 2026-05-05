@@ -9,7 +9,7 @@ use crate::completers::compatdata_from_exe_path;
 use crate::db;
 use crate::paths::logs_dir;
 use crate::process::{format_command, spawn_and_wait_wine};
-use crate::proton::{resolve_launch_context, ProtonCommand};
+use crate::proton::{find_wine_bin, resolve_launch_context, ProtonCommand};
 use crate::steam::{get_game_name, Steam};
 use crate::wineserver::{scan_running_games, WineserverInfo};
 
@@ -81,12 +81,11 @@ pub fn cmd(
         let proton_root = proton_path
             .parent()
             .ok_or_else(|| anyhow!("Invalid Proton path: {}", proton_path.display()))?;
-        let wine64 = proton_root.join("files/bin/wine64");
-        if !wine64.exists() {
-            bail!("wine64 not found: {}", wine64.display());
-        }
+        let bin_dir = proton_root.join("files/bin");
+        let wine_bin = find_wine_bin(&bin_dir)
+            .ok_or_else(|| anyhow!("wine binary not found in {}", bin_dir.display()))?;
 
-        let mut cmd = std::process::Command::new(&wine64);
+        let mut cmd = std::process::Command::new(&wine_bin);
         cmd.arg("cmd").args(&args);
         cmd.env("WINEPREFIX", compat_data_path.join("pfx"));
         cmd.env("STEAM_COMPAT_DATA_PATH", &compat_data_path);
@@ -103,7 +102,7 @@ pub fn cmd(
             println!("\nCommand:");
             println!(
                 "  {} cmd {}",
-                wine64.display(),
+                wine_bin.display(),
                 args.iter()
                     .map(|a| a.to_string_lossy().into_owned())
                     .collect::<Vec<_>>()
@@ -160,7 +159,7 @@ pub fn attach(
 
     spawn_and_wait_wine(
         cmd,
-        Some(&info.wine64),
+        Some(&info.wine_bin),
         exe_name,
         bypass_gamescope.is_some(),
         Some(&log_path),

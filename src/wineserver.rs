@@ -5,10 +5,12 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::{self, Command};
 
+use crate::proton::find_wine_bin;
+
 pub struct WineserverInfo {
     pub appid: String,
     pub compatdata: PathBuf,
-    pub wine64: PathBuf,
+    pub wine_bin: PathBuf,
     pub env: HashMap<String, String>,
 }
 
@@ -32,11 +34,11 @@ impl WineserverInfo {
         I: IntoIterator<Item = S>,
         S: AsRef<OsStr>,
     {
-        if !self.wine64.exists() {
-            bail!("wine64 not found at {}", self.wine64.display());
+        if !self.wine_bin.exists() {
+            bail!("wine binary not found at {}", self.wine_bin.display());
         }
 
-        let mut cmd = Command::new(&self.wine64);
+        let mut cmd = Command::new(&self.wine_bin);
         for var in [
             "WINEFSYNC",
             "WINEESYNC",
@@ -118,15 +120,18 @@ pub fn scan_running_games() -> Vec<WineserverInfo> {
             Err(_) => continue,
         };
 
-        let wine64 = match wineserver_path.parent() {
-            Some(dir) => dir.join("wine64"),
+        let wine_bin = match wineserver_path
+            .parent()
+            .and_then(find_wine_bin)
+        {
+            Some(path) => path,
             None => continue,
         };
 
         results.push(WineserverInfo {
             appid,
             compatdata,
-            wine64,
+            wine_bin,
             env,
         });
     }
