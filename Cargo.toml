@@ -11,8 +11,8 @@ clap_complete = { version = "4.5.65", features = ["unstable-dynamic"] }
 ctrlc = "3.5.1"
 directories = "6.0.0"
 keyvalues-serde = "0.2.3"
-nix = { version = "0.30.1", features = ["signal", "process"] }
-rusqlite = "0.38.0"
+nix = { version = "0.31.2", features = ["signal", "process"] }
+rusqlite = "0.39.0"
 serde = { version = "1.0.228", features = ["derive"] }
 shlex = "1.3.0"
 
